@@ -30,20 +30,9 @@ public class Challenge2015 {
         final String id = puzzleResource.get("id").toString();
         final JSONArray array = (JSONArray) puzzleResource.get("puzzle");
 
-        final Collection<Puzzle.Square> solution = new Puzzle(array).solve(p -> {
-                    List<Puzzle.Square> squares = new ArrayList<>();
-                    for (int y = 0; y < p.length; ++y) {
-                        short[] row = p[y];
-                        for (int x = 0; x < row.length; ++x) {
-                            if (row[x] != 0)
-                                squares.add(new Puzzle.Square(x, y, 1));
-                        }
-                    }
-                    return squares;
-                }
-        );
+        final Collection<Puzzle.Square> solution = new Puzzle(array).solve();
 
-        final List<JSONObject> collect = solution.stream().map(square -> {
+        final List<JSONObject> squares = solution.stream().map(square -> {
             try {
                 return new JSONObject().put("X", square.x).put("Y", square.y).put("Size", square.size);
             } catch (Exception e) {
@@ -51,7 +40,7 @@ public class Challenge2015 {
             }
         }).collect(Collectors.toList());
 
-        final JSONObject response = rest.json(url("solution"), content(new JSONObject().put("id", id).put("squares", collect))).object();
+        final JSONObject response = rest.json(url("solution"), content(new JSONObject().put("id", id).put("squares", squares))).object();
 
         System.out.println(response);
     }
