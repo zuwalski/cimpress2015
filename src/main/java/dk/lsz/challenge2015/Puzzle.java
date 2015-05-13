@@ -6,7 +6,6 @@ import us.monoid.json.JSONException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * Created by lars on 01/05/15.
@@ -57,5 +56,15 @@ public class Puzzle {
         }
 
         return translated;
+    }
+
+    public void print() {
+        for (int y = 0; y < puzzle.length; ++y) {
+            short[] row = puzzle[y];
+            for (int x = 0; x < row.length; ++x) {
+                System.out.print(row[x] != 0 ? "1," : "0,");
+            }
+            System.out.println();
+        }
     }
 }

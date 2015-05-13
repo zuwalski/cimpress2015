@@ -1,142 +1,92 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by lars on 03/05/15.
  */
 public class RectangleScanner {
-    private final RectangleGroup group = new RectangleGroup();
+    private final RowTracker tracker;
     private final short[][] puzzle;
 
-    private RectangleGroupElement[] above;
-    private RectangleGroupElement[] current;
     private int numOfTiles = -1;
 
     public RectangleScanner(short[][] puzzle) {
         this.puzzle = puzzle;
-
-        above = new RectangleGroupElement[puzzle[0].length];
-        current = new RectangleGroupElement[above.length];
+        this.tracker = new RowTracker(puzzle[0].length);
     }
 
     public int getNumberOfTiles() {
         return numOfTiles;
     }
 
-    public Collection<Rectangle> scanAtLevel(final int lockLevel) {
-        final List<Rectangle> recs = new ArrayList<>();
+    public int getNumberOfElementsUsed() {
+        return tracker.getNumberOfGroupElements();
+    }
 
-        group.remove(above);
+    public List<Rectangle> scanAtLevel(final int lockLevel) {
+        final List<Rectangle> recs = new ArrayList<>();
         numOfTiles = 0;
+
+        tracker.beginNewScan();
 
         for (int y = 0; y < puzzle.length; ++y) {
             final short[] row = puzzle[y];
-            RectangleGroupElement before = null;
 
             for (int x = 0; x < row.length; ++x) {
-                if (row[x] > lockLevel) {
+                if (row[x] >= lockLevel) {
                     // open
-                    current[x] = extendTo(before, above[x], x, y, recs);
                     numOfTiles++;
+
+                    extendTo(x, y, recs);
                 } else {
                     // closed
-                    stop(before, x, y, recs);
+                    stop(x, y, recs);
                 }
 
-                before = current[x];
+                tracker.step();
             }
 
-            // swap
-            RectangleGroupElement[] tmp = above;
-            above = current;
-            current = tmp;
-            group.remove(current);
+            tracker.nextRow();
         }
+
+        Collections.sort(recs);
 
         return recs;
     }
 
-    private RectangleGroupElement extendTo(RectangleGroupElement before, RectangleGroupElement above, int x, int y, List<Rectangle> recs) {
-        RectangleGroupElement list = null;
+    private void extendTo(int x, int y, List<Rectangle> recs) {
+        tracker.leftSet().filter(r -> r.stepX(x, y)).forEach(tracker::add);
 
-        int min = x;
-        boolean create = true;
-        for (RectangleGroupElement r = before; r != null; r = r.next) {
-            if (r.rec.stepX(x, y)) {
-                list = group.newElement(list, r.rec);
-            }
+        tracker.aboveSet().filter(r -> r.stepY(x, y)).forEach(tracker::add);
 
-            if (r.rec.y == y) {
-                create = false;
-            }
-
-            if (r.rec.x < min) {
-                min = r.rec.x;
-            }
-        }
-
-        if (create && above == null) {
-            // add a new rectangle that "slips" under blocker above
-            list = addNewRectangle(min, y, x, y, list, recs);
+        if (tracker.notCovered()) {
+            final Rectangle rec = new Rectangle(minX(x), minY(y), x, y);
+            recs.add(rec);
 
             // add this rec to prev cells
-            for (int i = min; i < x; ++i) {
-                current[i] = group.newElement(current[i], list.rec);
+            for (int i = rec.x; i <= x; ++i) {
+                tracker.addAt(rec, i);
             }
         }
-
-        min = y;
-        create = true;
-        for (RectangleGroupElement r = above; r != null; r = r.next) {
-            if (r.rec.stepY(x, y)) {
-                list = group.newElement(list, r.rec);
-            }
-
-            if (r.rec.x == x) {
-                create = false;
-            }
-
-            if (r.rec.y < min) {
-                min = r.rec.y;
-            }
-        }
-
-        if (create && before == null && above != null) {
-            // add a new rectangle that stands besides blocker
-            list = addNewRectangle(x, min, x, y, list, recs);
-        }
-
-        return list;
     }
 
-    private RectangleGroupElement addNewRectangle(int x, int y, int sx, int sy, RectangleGroupElement list, List<Rectangle> recs) {
-        Rectangle rec = new Rectangle(x, y, sx, sy);
-        recs.add(rec);
-
-        return group.newElement(list, rec);
+    private int minY(int y) {
+        return tracker.aboveSet().mapToInt(r -> r.y).min().orElse(y);
     }
 
-    private void stop(RectangleGroupElement before, int x, int y, List<Rectangle> recs) {
+    private int minX(int x) {
+        return tracker.leftSet().mapToInt(r -> r.x).min().orElse(x);
+    }
 
-        for (RectangleGroupElement r = before; r != null; r = r.next) {
+    private void stop(int x, int y, List<Rectangle> recs) {
+        tracker.leftSet().filter(r -> r.stopX(x, y)).forEach(r -> {
+            Rectangle replace = new Rectangle(r.x, r.y, x - 1, y);
+            recs.add(replace);
 
-            if (r.rec.stopX(x, y)) {
-                Rectangle replace = new Rectangle(r.rec.x, r.rec.y, x - 1, y);
-                recs.add(replace);
-
-                for (int i = r.rec.x; i < x; ++i) {
-                    for (RectangleGroupElement c = current[i]; c != null; c = c.next) {
-                        if (c.rec == r.rec) {
-                            c.rec = replace;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+            tracker.replaceRectangle(r, replace);
+        });
     }
 }
