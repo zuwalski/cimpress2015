@@ -43,16 +43,24 @@ public class RowTracker {
         before = current[x++];
     }
 
-    public Stream<Rectangle> aboveSet() {
+    public Stream<Rectangle> rectsAbove() {
         return streamSet(above[x]);
     }
 
-    public Stream<Rectangle> leftSet() {
+    public Stream<Rectangle> rectsToTheLeft() {
         return streamSet(before);
     }
 
     public boolean notCovered() {
         return current[x] == null;
+    }
+
+    private Stream<Rectangle> streamSet(RectangleGroupElement group) {
+        final Stream.Builder<Rectangle> builder = Stream.builder();
+        for (; group != null; group = group.next) {
+            builder.add(group.rec);
+        }
+        return builder.build();
     }
 
     public Rectangle add(Rectangle rec) {
@@ -86,14 +94,6 @@ public class RowTracker {
         return numberOfGroupElements;
     }
 
-    private Stream<Rectangle> streamSet(RectangleGroupElement group) {
-        final Stream.Builder<Rectangle> builder = Stream.builder();
-        for (; group != null; group = group.next) {
-            builder.add(group.rec);
-        }
-        return builder.build();
-    }
-
     private void clearRow(RectangleGroupElement[] row) {
         for (int i = 0; i < row.length; ++i) {
             RectangleGroupElement old = row[i];
@@ -106,6 +106,17 @@ public class RowTracker {
                 old.rec = null;
                 old = tmp;
             }
+        }
+    }
+
+    private static class RectangleGroupElement {
+        public RectangleGroupElement next;
+        public Rectangle rec;
+
+        public RectangleGroupElement init(RectangleGroupElement next, Rectangle rec) {
+            this.next = next;
+            this.rec = rec;
+            return this;
         }
     }
 }

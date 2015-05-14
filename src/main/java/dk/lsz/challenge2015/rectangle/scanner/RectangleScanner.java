@@ -3,6 +3,7 @@ package dk.lsz.challenge2015.rectangle.scanner;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by lars on 03/05/15.
@@ -58,12 +59,20 @@ public class RectangleScanner {
     }
 
     private void extendTo(int x, int y, List<Rectangle> recs) {
-        tracker.leftSet().filter(r -> r.stepX(x, y)).forEach(tracker::add);
+        tracker.rectsToTheLeft().filter(r -> r.stepX(x, y)).forEach(tracker::add);
 
-        tracker.aboveSet().filter(r -> r.stepY(x, y)).forEach(tracker::add);
+        tracker.rectsAbove().filter(r -> r.stepY(x, y)).forEach(tracker::add);
 
         if (tracker.notCovered()) {
-            final Rectangle rec = new Rectangle(minX(x), minY(y), x, y);
+            final Optional<Rectangle> tallest = tracker.rectsAbove().reduce((a, b) -> a.y < b.y ? a : b);
+
+            final Rectangle rec = tallest.map(
+                    // copy tallest - extend back far as possible
+                    r -> new Rectangle(Math.max(r.x, minX(x)), r.y, r.sx, y, false)
+            ).orElse(
+                    // or create one extending back
+                    new Rectangle(minX(x), y, x, y));
+
             recs.add(rec);
 
             // add this rec to prev cells
@@ -73,17 +82,13 @@ public class RectangleScanner {
         }
     }
 
-    private int minY(int y) {
-        return tracker.aboveSet().mapToInt(r -> r.y).min().orElse(y);
-    }
-
     private int minX(int x) {
-        return tracker.leftSet().mapToInt(r -> r.x).min().orElse(x);
+        return tracker.rectsToTheLeft().mapToInt(r -> r.x).min().orElse(x);
     }
 
     private void stop(int x, int y, List<Rectangle> recs) {
-        tracker.leftSet().filter(r -> r.stopX(x, y)).forEach(r -> {
-            Rectangle replace = new Rectangle(r.x, r.y, x - 1, y);
+        tracker.rectsToTheLeft().filter(r -> r.stopX(x, y)).forEach(r -> {
+            Rectangle replace = new Rectangle(r.x, r.y, x - 1, y, false);
             recs.add(replace);
 
             tracker.replaceRectangle(r, replace);

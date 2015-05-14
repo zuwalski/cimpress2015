@@ -6,13 +6,18 @@ package dk.lsz.challenge2015.rectangle.scanner;
 public class Rectangle implements Comparable<Rectangle> {
     public final int x, y;
     public int sx, sy;
-    private boolean open = true;
+    private boolean open;
 
     public Rectangle(int x, int y, int sx, int sy) {
+        this(x, y, sx, sy, true);
+    }
+
+    public Rectangle(int x, int y, int sx, int sy, boolean open) {
         this.x = x;
         this.y = y;
         this.sx = sx;
         this.sy = sy;
+        this.open = open;
     }
 
     /**
