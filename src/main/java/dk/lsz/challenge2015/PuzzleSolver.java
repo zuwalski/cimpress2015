@@ -5,7 +5,10 @@ import dk.lsz.challenge2015.rectangle.scanner.RectangleScanner;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Stack;
 
 /**
  * Created by lars on 03/05/15.
@@ -24,19 +27,32 @@ public class PuzzleSolver extends Puzzle {
     public Collection<Square> solve() {
         RectangleScanner scanner = new RectangleScanner(puzzle);
 
+        long start = System.currentTimeMillis();
+
         scanLevel(scanner);
+
+        System.out.printf("time %d ms\n", (System.currentTimeMillis() - start));
 
         return Collections.emptyList();
     }
 
     private static class Level {
-        public int x, y, size, level;
+        public final int x, y, size, level;
+        public final Level prev;
 
-        public Level(int x, int y, int size, int level) {
+        public final static Level ROOT = new Level();
+
+        private Level() {
+            x = y = size = level = 0;
+            prev = this;
+        }
+
+        public Level(int x, int y, int size, Level prev) {
             this.x = x;
             this.y = y;
             this.size = size;
-            this.level = level;
+            this.prev = prev;
+            this.level = prev.level + 1;
         }
 
         @Override
@@ -51,19 +67,18 @@ public class PuzzleSolver extends Puzzle {
     }
 
     private void scanLevel(RectangleScanner scanner) {
-        final Queue<Level> queue = new LinkedList<>();
-        final List<Level> solution = new ArrayList<>();
-        Collection<Level> best = Collections.emptyList();
+        final Stack<Level> stack = new Stack<>();
+
+        Level best = Level.ROOT;
         int max = Integer.MAX_VALUE;
 
         long solves = 0;
 
-        Level l = new Level(0, 0, 0, 0);
-
+        Level l = Level.ROOT;
         while (true) {
             solves++;
-/*            if (solves % 2000 == 0) {
-                System.out.printf("solves %d at %d (%d)\n", solves, max, best.size());
+            /*if (solves % 10000 == 0) {
+                System.out.printf("solves %d at %d (%d)\n", solves, max, best.level);
             }*/
 
             final List<Rectangle> rectangles = scanner.scanAtLevel(l.level + 1);
@@ -72,9 +87,9 @@ public class PuzzleSolver extends Puzzle {
                 int numOfSquares = scanner.getNumberOfTiles() + l.level;
                 if (numOfSquares < max) {
                     max = numOfSquares;
-                    best = new ArrayList<>(solution.subList(0, l.level));
+                    best = l;
 
-                    System.out.printf("solves %d at %d (%d)\n", solves, max, best.size());
+                    System.out.printf("solution %d (%d + %d) at %d\n", max, l.level, scanner.getNumberOfTiles(), solves);
                 }
             } else {
                 int minSquare = 1;
@@ -88,40 +103,38 @@ public class PuzzleSolver extends Puzzle {
                         // slide-x
                         int steps = r.sx - r.x - square;
                         for (int i = 0; i <= steps; ++i) {
-                            queue.add(new Level(r.x + i, r.y, square, l.level + 1));
+                            stack.push(new Level(r.x + i, r.y, square, l));
                         }
                     } else {
                         // slide-y
                         int steps = r.sy - r.y - square;
                         for (int i = 0; i <= steps; ++i) {
-                            queue.add(new Level(r.x, r.y + i, square, l.level + 1));
+                            stack.push(new Level(r.x, r.y + i, square, l));
                         }
                     }
                 }
             }
 
-            l = queue.poll();
-            if (l == null)
+            if (stack.isEmpty())
                 break;
-            markSquare((short) l.level, l.x, l.y, l.size);
+            l = stack.pop();
 
-            if (solution.size() >= l.level)
-                solution.set(l.level - 1, l);
-            else
-                solution.add(l);
+            markSquare(l);
         }
 
         System.out.printf("solves %d (%d)\n", solves, scanner.getNumberOfElementsUsed());
 
-        System.out.printf("best soloution: %d (%d)\n", max, best.size());
+        System.out.printf("best soloution: %d (%d)\n", max, best.level);
 
-        best.stream().forEach(System.out::println);
+        for (Level sl = best; sl != Level.ROOT; sl = sl.prev) {
+            System.out.println(sl);
+        }
     }
 
-    private void markSquare(short level, int x, int y, int size) {
-        for (int sy = 0; sy <= size; ++sy) {
-            for (int sx = 0; sx <= size; ++sx) {
-                puzzle[sy + y][sx + x] = level;
+    private void markSquare(Level level) {
+        for (int sy = 0; sy <= level.size; ++sy) {
+            for (int sx = 0; sx <= level.size; ++sx) {
+                puzzle[sy + level.y][sx + level.x] = (short) level.level;
             }
         }
     }

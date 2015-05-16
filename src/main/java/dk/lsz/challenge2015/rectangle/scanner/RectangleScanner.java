@@ -51,6 +51,8 @@ public class RectangleScanner {
             }
 
             tracker.nextRow();
+
+            tracker.updateCluster();
         }
 
         Collections.sort(recs);

@@ -8,6 +8,8 @@ public class Rectangle implements Comparable<Rectangle> {
     public int sx, sy;
     private boolean open;
 
+    private Rectangle cluster = null;
+
     public Rectangle(int x, int y, int sx, int sy) {
         this(x, y, sx, sy, true);
     }
@@ -18,6 +20,21 @@ public class Rectangle implements Comparable<Rectangle> {
         this.sx = sx;
         this.sy = sy;
         this.open = open;
+    }
+
+    public Rectangle leader() {
+        if (cluster == null)
+            return this;
+
+        // perform path-compression
+        while (cluster.cluster != null)
+            cluster = cluster.cluster;
+
+        return cluster;
+    }
+
+    public void updateCluster(Rectangle leader) {
+        this.cluster = leader;
     }
 
     /**
@@ -76,10 +93,6 @@ public class Rectangle implements Comparable<Rectangle> {
         return (sx != x) && (sy != y);
     }
 
-    public boolean isSquare() {
-        return (sx - x) == (sy - y);
-    }
-
     public int minWidth() {
         return Math.min(sx - x, sy - y);
     }
@@ -96,6 +109,7 @@ public class Rectangle implements Comparable<Rectangle> {
                 ", y=" + y +
                 ", sx=" + sx +
                 ", sy=" + sy +
+                ", lead=" + super.toString() +
                 '}';
     }
 
