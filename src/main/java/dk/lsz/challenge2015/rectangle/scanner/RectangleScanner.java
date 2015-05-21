@@ -1,5 +1,8 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
+import dk.lsz.challenge2015.Level2;
+import dk.lsz.challenge2015.rectangle.scanner.sources.PuzzleSource;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,12 +22,46 @@ public class RectangleScanner {
         this.tracker = new RowTracker(puzzle[0].length);
     }
 
+    public RectangleScanner(int width) {
+        this.puzzle = null;
+        this.tracker = new RowTracker(width);
+    }
+
     public int getNumberOfTiles() {
         return numOfTiles;
     }
 
     public int getNumberOfElementsUsed() {
         return tracker.getNumberOfGroupElements();
+    }
+
+    public List<Rectangle> scan(PuzzleSource src, Level2 l) {
+        final List<Rectangle> recs = new ArrayList<>();
+        numOfTiles = 0;
+
+        tracker.beginNewScan();
+        src.begin();
+
+        for (int y = 0; y < src.getHeight(); ++y) {
+            for (int x = 0; x < src.getWidth(); ++x) {
+                if (src.nextCell() && !l.cover(x, y)) {
+                    // open
+                    numOfTiles++;
+
+                    extendTo(x, y, recs);
+                } else {
+                    // closed
+                    stop(x, y, recs);
+                }
+
+                tracker.step();
+            }
+
+            tracker.nextRow();
+            src.nextRow();
+        }
+
+        return recs;
     }
 
     public List<Rectangle> scanAtLevel(final int lockLevel) {
@@ -51,8 +88,6 @@ public class RectangleScanner {
             }
 
             tracker.nextRow();
-
-            tracker.updateCluster();
         }
 
         Collections.sort(recs);

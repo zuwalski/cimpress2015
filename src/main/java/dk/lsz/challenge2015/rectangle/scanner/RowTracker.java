@@ -7,7 +7,6 @@ import java.util.stream.Stream;
  */
 public class RowTracker {
     private final int width;
-    private RectangleGroupElement[] hist;
     private RectangleGroupElement[] above;
     private RectangleGroupElement[] current;
 
@@ -19,7 +18,6 @@ public class RowTracker {
 
     public RowTracker(int width) {
         this.width = width;
-        this.hist = new RectangleGroupElement[width];
         this.above = new RectangleGroupElement[width];
         this.current = new RectangleGroupElement[width];
     }
@@ -27,53 +25,20 @@ public class RowTracker {
     public void beginNewScan() {
         clearRow(current);
         clearRow(above);
-        clearRow(hist);
 
         before = null;
         x = 0;
     }
 
     public void nextRow() {
-        // roll
-        RectangleGroupElement[] tmp = hist;
-        hist = above;
+        // swap
+        RectangleGroupElement[] tmp = above;
         above = current;
         current = tmp;
 
         clearRow(current);
         before = null;
         x = 0;
-    }
-
-    /**
-     * Lagged one row to make sure larger than single-with have
-     * been correctly detected.
-     * <p>
-     * Clustering using Union-Find
-     */
-    public void updateCluster() {
-        for (int i = 0; i < width; ++i) {
-
-            Rectangle cluster = null;
-            for (RectangleGroupElement group = hist[i]; group != null; group = group.next) {
-
-                if (group.rec.notSingleWidth()) {
-                    Rectangle r = group.rec;
-                    Rectangle l = r.leader();
-
-                    if (cluster == null)
-                        cluster = l;
-                    else if (l != cluster) {
-                        if (l == r) {
-                            r.updateCluster(cluster);
-                        } else {
-                            // union
-                            l.updateCluster(cluster);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     public void step() {
@@ -86,6 +51,10 @@ public class RowTracker {
 
     public Stream<Rectangle> rectsToTheLeft() {
         return streamSet(before);
+    }
+
+    public Stream<Rectangle> rectsHere() {
+        return streamSet(current[x]);
     }
 
     public boolean notCovered() {

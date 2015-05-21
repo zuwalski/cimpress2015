@@ -8,7 +8,7 @@ public class Rectangle implements Comparable<Rectangle> {
     public int sx, sy;
     private boolean open;
 
-    private Rectangle cluster = null;
+    private Rectangle lead = null;
 
     public Rectangle(int x, int y, int sx, int sy) {
         this(x, y, sx, sy, true);
@@ -23,18 +23,18 @@ public class Rectangle implements Comparable<Rectangle> {
     }
 
     public Rectangle leader() {
-        if (cluster == null)
+        if (lead == null)
             return this;
 
-        // perform path-compression
-        while (cluster.cluster != null)
-            cluster = cluster.cluster;
+        while (lead.lead != null)
+            lead = lead.lead;
 
-        return cluster;
+        return lead;
     }
 
-    public void updateCluster(Rectangle leader) {
-        this.cluster = leader;
+    public void setLeader(Rectangle leader) {
+        if (leader != this && this.lead == null)
+            this.lead = leader;
     }
 
     /**
@@ -109,7 +109,6 @@ public class Rectangle implements Comparable<Rectangle> {
                 ", y=" + y +
                 ", sx=" + sx +
                 ", sy=" + sy +
-                ", lead=" + super.toString() +
                 '}';
     }
 

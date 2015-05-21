@@ -31,8 +31,20 @@ public class PuzzleSolver extends Puzzle {
 
         scanLevel(scanner);
 
+        //scanLevelRecur(scanner, Level.ROOT);
+
         System.out.printf("time %d ms\n", (System.currentTimeMillis() - start));
 
+        /*
+        System.out.printf("solves %d (%d)\n", solves, scanner.getNumberOfElementsUsed());
+
+        System.out.printf("best soloution: %d (%d)\n", max, best.level);
+
+        for (Level sl = best; sl != Level.ROOT; sl = sl.prev) {
+            System.out.println(sl);
+        }
+
+    */
         return Collections.emptyList();
     }
 
@@ -89,7 +101,7 @@ public class PuzzleSolver extends Puzzle {
                     max = numOfSquares;
                     best = l;
 
-                    System.out.printf("solution %d (%d + %d) at %d\n", max, l.level, scanner.getNumberOfTiles(), solves);
+                    //System.out.printf("solution %d (%d + %d) at %d\n", max, l.level, scanner.getNumberOfTiles(), solves);
                 }
             } else {
                 int minSquare = 1;
@@ -128,6 +140,55 @@ public class PuzzleSolver extends Puzzle {
 
         for (Level sl = best; sl != Level.ROOT; sl = sl.prev) {
             System.out.println(sl);
+        }
+    }
+
+    Level best = Level.ROOT;
+    int max = Integer.MAX_VALUE;
+
+    long solves = 0;
+
+    private void scanLevelRecur(RectangleScanner scanner, Level l) {
+
+        markSquare(l);
+
+        solves++;
+            /*if (solves % 10000 == 0) {
+                System.out.printf("solves %d at %d (%d)\n", solves, max, best.level);
+            }*/
+
+        final List<Rectangle> rectangles = scanner.scanAtLevel(l.level + 1);
+
+        if (rectangles.isEmpty() || rectangles.get(0).minWidth() == 0) {
+            int numOfSquares = scanner.getNumberOfTiles() + l.level;
+            if (numOfSquares < max) {
+                max = numOfSquares;
+                best = l;
+
+                //System.out.printf("solution %d (%d + %d) at %d\n", max, l.level, scanner.getNumberOfTiles(), solves);
+            }
+        } else {
+            int minSquare = 1;
+            for (Rectangle r : rectangles) {
+                int square = r.minWidth();
+                if (square < minSquare)
+                    break;
+                minSquare = square;
+
+                if (r.sy - r.y == square) {
+                    // slide-x
+                    int steps = r.sx - r.x - square;
+                    for (int i = 0; i <= steps; ++i) {
+                        scanLevelRecur(scanner, new Level(r.x + i, r.y, square, l));
+                    }
+                } else {
+                    // slide-y
+                    int steps = r.sy - r.y - square;
+                    for (int i = 0; i <= steps; ++i) {
+                        scanLevelRecur(scanner, new Level(r.x, r.y + i, square, l));
+                    }
+                }
+            }
         }
     }
 
