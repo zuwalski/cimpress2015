@@ -43,7 +43,7 @@ public class Puzzle {
         return squares;
     }
 
-    private static short[][] translate2array(JSONArray puzzle) throws JSONException {
+    public static short[][] translate2array(JSONArray puzzle) throws JSONException {
         final short[][] translated = new short[puzzle.length()][];
 
         for (int y = 0; y < puzzle.length(); ++y) {
@@ -58,11 +58,19 @@ public class Puzzle {
         return translated;
     }
 
-    public void print() {
+    public static void print(short[][] puzzle) {
         for (int y = 0; y < puzzle.length; ++y) {
             short[] row = puzzle[y];
             for (int x = 0; x < row.length; ++x) {
-                System.out.print(row[x] != 0 ? "1," : "0,");
+                if (row[x] == Short.MAX_VALUE)
+                    System.out.print("_ ");
+                else if (row[x] == 0)
+                    System.out.print("  ");
+                else {
+                    System.out.print(row[x]);
+                    System.out.print(' ');
+                }
+//                System.out.print(row[x] != 0 ? "1," : "0,");
             }
             System.out.println();
         }

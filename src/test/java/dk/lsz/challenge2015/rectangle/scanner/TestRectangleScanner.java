@@ -2,10 +2,7 @@ package dk.lsz.challenge2015.rectangle.scanner;
 
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
@@ -216,8 +213,6 @@ public class TestRectangleScanner {
         recs.forEach(r -> set(r, test));
 
         assertTrue(allCovered(test));
-
-        clusterPrint(test, recs);
     }
 
     @Test
@@ -271,63 +266,6 @@ public class TestRectangleScanner {
         recs.forEach(r -> set(r, test));
 
         assertTrue(allCovered(test));
-
-        clusterPrint(test, recs);
-    }
-
-    public static void clusterPrint(short[][] puzzle, List<Rectangle> recs) {
-        Map<Rectangle, Integer> ids = new HashMap<>();
-        AtomicInteger nextId = new AtomicInteger();
-
-        Cluster cls = new Cluster(puzzle[0].length, puzzle.length);
-
-        System.out.println("clusters: " + cls.cluster(recs));
-
-        recs.stream().filter(Rectangle::notSingleWidth).forEach(r -> {
-            ids.computeIfAbsent(r.leader(), some -> nextId.incrementAndGet());
-        });
-
-        for (int y = 0; y < puzzle.length; ++y) {
-            short[] row = puzzle[y];
-            for (int x = 0; x < row.length; ++x) {
-                if (row[x] != 0) {
-                    row[x] = -1;
-                }
-            }
-        }
-
-        for (Rectangle r : recs) {
-            if (r.notSingleWidth()) {
-                short cid = (short) ids.getOrDefault(r.leader(), -1).intValue();
-
-                for (int y = r.y; y <= r.sy; ++y) {
-                    for (int x = r.x; x <= r.sx; ++x) {
-                        if (puzzle[y][x] != 0)
-                            puzzle[y][x] = cid;
-                    }
-                }
-            }
-        }
-
-        System.out.println();
-
-        for (int y = 0; y < puzzle.length; ++y) {
-            short[] row = puzzle[y];
-            for (int x = 0; x < row.length; ++x) {
-                short v = row[x];
-                if (v > 0) {
-                    System.out.print(row[x]);
-                    System.out.print(' ');
-                } else if (v < 0) {
-                    System.out.print("0 ");
-                } else {
-                    System.out.print("_ ");
-                }
-            }
-            System.out.println();
-        }
-
-        System.out.println();
     }
 
     public static boolean allCovered(short[][] puzzle) {

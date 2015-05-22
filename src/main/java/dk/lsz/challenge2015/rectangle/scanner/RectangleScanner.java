@@ -1,6 +1,6 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
-import dk.lsz.challenge2015.Level2;
+import dk.lsz.challenge2015.Level;
 import dk.lsz.challenge2015.rectangle.scanner.sources.PuzzleSource;
 
 import java.util.ArrayList;
@@ -31,11 +31,7 @@ public class RectangleScanner {
         return numOfTiles;
     }
 
-    public int getNumberOfElementsUsed() {
-        return tracker.getNumberOfGroupElements();
-    }
-
-    public List<Rectangle> scan(PuzzleSource src, Level2 l) {
+    public List<Rectangle> scan(PuzzleSource src, Level l) {
         final List<Rectangle> recs = new ArrayList<>();
         numOfTiles = 0;
 

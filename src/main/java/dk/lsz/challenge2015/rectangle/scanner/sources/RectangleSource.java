@@ -1,23 +1,23 @@
 package dk.lsz.challenge2015.rectangle.scanner.sources;
 
 import dk.lsz.challenge2015.rectangle.scanner.Rectangle;
-import dk.lsz.challenge2015.rectangle.scanner.RowTracker;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
  * Created by lars on 18/05/15.
  */
 public class RectangleSource implements PuzzleSource {
-    private final RowTracker tracker;
-    private final Rectangle[] src;
-    private int x, y, i;
     private final int width, height;
 
-    public RectangleSource(Collection<Rectangle> recs, int height, int width) {
-        this.tracker = new RowTracker(width);
+    private final Collection<Rectangle> recs;
+    private final int[] row;
+    private int x, y;
 
-        src = recs.stream().sorted((a, b) -> a.y - b.y).toArray(Rectangle[]::new);
+    public RectangleSource(Collection<Rectangle> recs, int height, int width) {
+        this.row = new int[width];
+        this.recs = recs;
 
         this.width = width;
         this.height = height;
@@ -35,44 +35,32 @@ public class RectangleSource implements PuzzleSource {
 
     @Override
     public void begin() {
-        x = y = i = 0;
-        tracker.beginNewScan();
+        x = y = 0;
 
-        addNewOnRow();
+        prepareRow();
     }
 
     @Override
     public boolean nextCell() {
-        tracker.rectsAbove().filter(r -> x == r.x && r.sy >= y)
-                .forEach(tracker::add);
-
-        tracker.rectsToTheLeft().filter(r -> x <= r.sx)
-                .forEach(tracker::add);
-
-        boolean empty = tracker.notCovered();
-
-        tracker.step();
-        x++;
-
-        return !empty;
+        return row[x++] != 0;
     }
 
     @Override
     public void nextRow() {
-        tracker.nextRow();
-        x = 0;
         y++;
-        addNewOnRow();
+        x = 0;
+        prepareRow();
     }
 
-    private void addNewOnRow() {
-        for (; i < src.length; ++i) {
-            Rectangle head = src[i];
+    private void prepareRow() {
+        Arrays.fill(row, 0);
 
-            if (head.y == y) {
-                tracker.addAt(head, head.x);
-            } else
-                break;
+        for (Rectangle r : recs) {
+            if (r.y <= y && r.sy >= y) {
+                for (int i = r.x; i <= r.sx; ++i) {
+                    row[i]++;
+                }
+            }
         }
     }
 }

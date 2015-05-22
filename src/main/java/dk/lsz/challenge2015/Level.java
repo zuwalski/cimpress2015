@@ -1,28 +1,32 @@
 package dk.lsz.challenge2015;
 
 /**
- * Created by lars on 20/05/15.
+ * Created by lars on 21/05/15.
  */
-public class Level2 {
+public class Level {
     public final int x, y, size, level;
-    public final Level2 prev;
+    public final Level prev;
 
-    public final static Level2 ROOT = new Level2(0);
-    public final static Level2 WORST = new Level2(Integer.MAX_VALUE);
+    public final int area;
 
-    private Level2(int level) {
-        this.level = level;
-        prev = this;
+    public final static Level ROOT = new Level(0);
+    public final static Level WORST = new Level(Integer.MAX_VALUE);
+
+    private Level(int level) {
         x = y = -1;
         size = 0;
+        this.level = level;
+        prev = this;
+        area = 0;
     }
 
-    public Level2(int x, int y, int size, Level2 prev) {
+    public Level(int x, int y, int size, Level prev) {
         this.x = x;
         this.y = y;
         this.size = size;
         this.prev = prev;
         this.level = prev.level + 1;
+        this.area = prev.area + (size + 1) * (size + 1);
     }
 
     public boolean cover(int x, int y) {
@@ -32,11 +36,12 @@ public class Level2 {
 
     @Override
     public String toString() {
-        return "Level2{" +
+        return "Level{" +
                 "x=" + x +
                 ", y=" + y +
                 ", size=" + size +
                 ", level=" + level +
+                ", area=" + area +
                 '}';
     }
 }

@@ -1,6 +1,6 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
-import dk.lsz.challenge2015.Level2;
+import dk.lsz.challenge2015.Level;
 import dk.lsz.challenge2015.rectangle.scanner.sources.ArraySource;
 import org.junit.Test;
 
@@ -49,7 +49,7 @@ public class TestClusterScanner {
         ArraySource src = new ArraySource(test);
         RectangleScanner scanner = new RectangleScanner(src.getWidth());
 
-        final List<Rectangle> recs = scanner.scan(src, Level2.ROOT);
+        final List<Rectangle> recs = scanner.scan(src, Level.ROOT);
 
         ClusterScanner cluster = new ClusterScanner(src.getWidth(), src.getHeight());
 
@@ -106,7 +106,7 @@ public class TestClusterScanner {
         ArraySource src = new ArraySource(test);
         RectangleScanner scanner = new RectangleScanner(src.getWidth());
 
-        final List<Rectangle> recs = scanner.scan(src, Level2.ROOT);
+        final List<Rectangle> recs = scanner.scan(src, Level.ROOT);
 
         ClusterScanner cluster = new ClusterScanner(src.getWidth(), src.getHeight());
 
