@@ -1,21 +1,22 @@
 package dk.lsz.challenge2015.rectangle.scanner.sources;
 
-import dk.lsz.challenge2015.rectangle.scanner.Rectangle;
+import dk.lsz.challenge2015.Level;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 /**
  * Created by lars on 18/05/15.
  */
-public class RectangleSource implements PuzzleSource {
-    private final Collection<Rectangle> recs;
+public class MaskedSource implements PuzzleSource {
     private final int[] row;
+    private final Level mask;
+    private final PuzzleSource src;
     private int x, y;
 
-    public RectangleSource(Collection<Rectangle> recs, int width) {
+    public MaskedSource(PuzzleSource src, Level mask, int width) {
         this.row = new int[width];
-        this.recs = recs;
+        this.mask = mask;
+        this.src = src;
     }
 
     @Override
@@ -23,11 +24,13 @@ public class RectangleSource implements PuzzleSource {
         x = y = 0;
 
         prepareRow();
+        src.begin();
     }
 
     @Override
     public boolean nextCell() {
-        return row[x++] != 0;
+        int v = row[x++];
+        return src.nextCell() && (v == 0);
     }
 
     @Override
@@ -35,14 +38,15 @@ public class RectangleSource implements PuzzleSource {
         y++;
         x = 0;
         prepareRow();
+        src.nextRow();
     }
 
     private void prepareRow() {
         Arrays.fill(row, 0);
 
-        for (Rectangle r : recs) {
-            if (r.y <= y && r.sy >= y) {
-                for (int i = r.x; i <= r.sx; ++i) {
+        for (Level l = mask; l != Level.ROOT; l = l.prev) {
+            if (l.y <= y && l.y + l.size >= y) {
+                for (int i = l.x; i <= l.x + l.size; ++i) {
                     row[i]++;
                 }
             }

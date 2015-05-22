@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static org.junit.Assert.assertTrue;
+
 /**
  * Created by lars on 12/05/15.
  */
@@ -20,33 +22,49 @@ public class TestSolver {
 
     @Test
     public void testSolver3() throws IOException, JSONException {
-        final JSONObject json = new JSONObject(new String(Files.readAllBytes(Paths.get("src/test/resources/test1.json"))));
+        final JSONObject json = new JSONObject(new String(Files.readAllBytes(Paths.get("src/test/resources/test2.json"))));
 
         final JSONArray jsonArray = json.getJSONArray("puzzle");
 
-        //final PuzzleSolver solver = new PuzzleSolver(Puzzle.translate2array(jsonArray));
-        final PuzzleSolver2 solver = new PuzzleSolver2(new ArraySource(Puzzle.translate2array(jsonArray)));
+        final short[][] puzzle = Puzzle.translate2array(jsonArray);
+        final PuzzleSolver2 solver = new PuzzleSolver2(new ArraySource(puzzle), puzzle[0].length, puzzle.length);
 
         long start = System.currentTimeMillis();
-        final Level solution = solver.solve();
 
-        System.out.printf("=> Time: %d Level: %d Area: %d\n", (System.currentTimeMillis() - start), solution.level, solution.area);
+        Level solution = solver.solve();
 
-        verify(solution, Puzzle.translate2array(jsonArray));
+        System.out.printf("1) => Time: %d Level: %d Area: %d\n", (System.currentTimeMillis() - start), solution.level, solution.area);
+
+        for (int i = 0; i < 5; i++) {
+            solution = solution.union(solver.solveFrom(solution));
+
+            System.out.printf("%d) => Time: %d Level: %d Area: %d\n", i + 2, (System.currentTimeMillis() - start), solution.level, solution.area);
+        }
+
+        assertTrue("invalid solution", verify(solution, Puzzle.translate2array(jsonArray)));
     }
 
-    public void verify(Level s, short[][] puzzle) {
+    public boolean verify(Level s, short[][] puzzle) {
         System.out.printf("Before %d squares\n", countCells(puzzle));
 
-        for (; s != Level.ROOT; s = s.prev) {
-            System.out.println(s);
-
-            markSquare(s, puzzle);
-        }
+        boolean valid = printAndMark(s, puzzle);
 
         System.out.printf("After %d squares\n", countCells(puzzle));
 
         print(puzzle);
+
+        return valid;
+    }
+
+    private boolean printAndMark(Level s, short[][] puzzle) {
+        if (s == Level.ROOT)
+            return true;
+
+        boolean valid = printAndMark(s.prev, puzzle);
+
+        System.out.println(s);
+
+        return markSquare(s, puzzle) && valid;
     }
 
     private int countCells(short[][] puzzle) {
@@ -61,19 +79,23 @@ public class TestSolver {
         return i;
     }
 
-    private void markSquare(Level level, short[][] puzzle) {
+    private boolean markSquare(Level level, short[][] puzzle) {
+        boolean valid = true;
         for (int sy = 0; sy <= level.size; ++sy) {
             for (int sx = 0; sx <= level.size; ++sx) {
                 short v = puzzle[sy + level.y][sx + level.x];
 
                 if (v == 0) {
-                    System.out.printf("Illegal (%d, %d)\n", level.x, level.y);
+                    System.out.printf(" > Illegal (%d, %d)\n", sx + level.x, sy + level.y);
+                    valid = false;
                 } else if (v != Short.MAX_VALUE) {
-                    System.out.printf("Taken (%d, %d)\n", level.x, level.y);
+                    System.out.printf(" > Taken (%d, %d)\n", sx + level.x, sy + level.y);
+                    valid = false;
                 } else
                     puzzle[sy + level.y][sx + level.x] = (short) level.level;
             }
         }
+        return valid;
     }
 
     private void print(short[][] puzzle) {

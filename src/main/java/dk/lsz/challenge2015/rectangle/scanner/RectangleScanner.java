@@ -14,17 +14,23 @@ import java.util.Optional;
 public class RectangleScanner {
     private final RowTracker tracker;
     private final short[][] puzzle;
+    private final int width;
+    private final int height;
 
     private int numOfTiles = -1;
 
     public RectangleScanner(short[][] puzzle) {
         this.puzzle = puzzle;
         this.tracker = new RowTracker(puzzle[0].length);
+        this.height = puzzle.length;
+        this.width = puzzle[0].length;
     }
 
-    public RectangleScanner(int width) {
-        this.puzzle = null;
+    public RectangleScanner(int width, int height) {
+        this.width = width;
+        this.height = height;
         this.tracker = new RowTracker(width);
+        this.puzzle = null;
     }
 
     public int getNumberOfTiles() {
@@ -38,8 +44,8 @@ public class RectangleScanner {
         tracker.beginNewScan();
         src.begin();
 
-        for (int y = 0; y < src.getHeight(); ++y) {
-            for (int x = 0; x < src.getWidth(); ++x) {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
                 if (src.nextCell() && !l.cover(x, y)) {
                     // open
                     numOfTiles++;

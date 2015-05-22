@@ -47,11 +47,11 @@ public class TestClusterScanner {
         };
 
         ArraySource src = new ArraySource(test);
-        RectangleScanner scanner = new RectangleScanner(src.getWidth());
+        RectangleScanner scanner = new RectangleScanner(test[0].length, test.length);
 
         final List<Rectangle> recs = scanner.scan(src, Level.ROOT);
 
-        ClusterScanner cluster = new ClusterScanner(src.getWidth(), src.getHeight());
+        ClusterScanner cluster = new ClusterScanner(test[0].length, test.length);
 
         final Collection<List<Rectangle>> scan = cluster.split(recs);
 
@@ -104,11 +104,11 @@ public class TestClusterScanner {
         };
 
         ArraySource src = new ArraySource(test);
-        RectangleScanner scanner = new RectangleScanner(src.getWidth());
+        RectangleScanner scanner = new RectangleScanner(test[0].length, test.length);
 
         final List<Rectangle> recs = scanner.scan(src, Level.ROOT);
 
-        ClusterScanner cluster = new ClusterScanner(src.getWidth(), src.getHeight());
+        ClusterScanner cluster = new ClusterScanner(test[0].length, test.length);
 
         final Collection<List<Rectangle>> scan = cluster.split(recs);
 

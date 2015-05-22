@@ -49,11 +49,11 @@ public class TestPuzzleSource {
 
         final List<Rectangle> recs = scanner.scanAtLevel(1);
 
-        RectangleSource source = new RectangleSource(recs, test.length, test[0].length);
+        RectangleSource source = new RectangleSource(recs, test[0].length);
 
         source.begin();
-        for (int y = 0; y < source.getHeight(); ++y) {
-            for (int x = 0; x < source.getWidth(); ++x) {
+        for (int y = 0; y < test.length; ++y) {
+            for (int x = 0; x < test[0].length; ++x) {
                 if (source.nextCell()) {
                     assertTrue(test[y][x] > 0);
                 } else {

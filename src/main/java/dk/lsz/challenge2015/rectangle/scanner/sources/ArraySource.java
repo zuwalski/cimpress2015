@@ -12,16 +12,6 @@ public class ArraySource implements PuzzleSource {
     }
 
     @Override
-    public int getWidth() {
-        return puzzle[0].length;
-    }
-
-    @Override
-    public int getHeight() {
-        return puzzle.length;
-    }
-
-    @Override
     public void begin() {
         x = y = 0;
     }

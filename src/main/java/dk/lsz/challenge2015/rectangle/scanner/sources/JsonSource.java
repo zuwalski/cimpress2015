@@ -13,17 +13,7 @@ public class JsonSource implements PuzzleSource {
 
     public JsonSource(JSONArray puzzle) throws JSONException {
         this.puzzle = puzzle;
-        row = puzzle.getJSONArray(0);
-    }
-
-    @Override
-    public int getWidth() {
-        return row.length();
-    }
-
-    @Override
-    public int getHeight() {
-        return puzzle.length();
+        row = null;
     }
 
     @Override
