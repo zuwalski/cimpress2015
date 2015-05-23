@@ -25,6 +25,7 @@ public class SolverDriver {
 
         int level = solution.level;
         while (true) {
+            System.out.printf("solution at %d\n", level);
             solution = solution.union(solver.solveFrom(solution));
 
             if (solution.level <= level)
@@ -33,10 +34,10 @@ public class SolverDriver {
             level = solution.level;
         }
 
-        return remainingSquares(solution);
+        return remainingSquares(solution, puzzle, width, height);
     }
 
-    public Square remainingSquares(Square sqrs) {
+    public static Square remainingSquares(Square sqrs, PuzzleSource puzzle, int width, int height) {
         PuzzleSource source = new MaskedSource(puzzle, sqrs, width);
 
         source.begin();

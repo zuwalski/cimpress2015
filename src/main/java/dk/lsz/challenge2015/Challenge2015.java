@@ -20,26 +20,39 @@ public class Challenge2015 {
 
     static final String env = "trial";
     static final String base = "http://techchallenge.cimpress.com";
+    private static final int RUNTIMES = 10;
 
     public static void main(String[] args) throws Exception {
         final Resty rest = new Resty();
 
-        JSONResource puzzleResource = rest.json(url("puzzle"));
+        for (int i = 0; i < RUNTIMES; ++i) {
+            long start = System.currentTimeMillis();
+            System.out.println("request");
+            JSONResource puzzleResource = rest.json(url("puzzle"));
 
-        String id = puzzleResource.get("id").toString();
-        JSONArray array = (JSONArray) puzzleResource.get("puzzle");
+            String id = puzzleResource.get("id").toString();
+            JSONArray array = (JSONArray) puzzleResource.get("puzzle");
 
-        int width = Integer.parseInt(puzzleResource.get("width").toString());
-        int height = Integer.parseInt(puzzleResource.get("height").toString());
+            int width = Integer.parseInt(puzzleResource.get("width").toString());
+            int height = Integer.parseInt(puzzleResource.get("height").toString());
 
-        SolverDriver solver2 = new SolverDriver(new ArraySource(array), width, height);
+            SolverDriver solver2 = new SolverDriver(new ArraySource(array), width, height);
 
-        List<JSONObject> squares = collectSquares(solver2.solve());
+            List<JSONObject> squares = collectSquares(solver2.solve());
 
-        JSONObject response = rest.json(url("solution"), content(new JSONObject().put("id", id).put("squares", squares))).object();
+            System.out.printf("done w: %d h: %d - obj: %d time: %d ms\n", width, height, squares.size(), (System.currentTimeMillis() - start));
 
-        System.out.printf("w: %d h: %d - obj: %d\n", width, height, squares.size());
-        System.out.println(response);
+            JSONObject response = rest.json(url("solution"), content(new JSONObject().put("id", id).put("squares", squares))).object();
+
+            System.out.printf("send time: %d ms\n", (System.currentTimeMillis() - start));
+
+            if (response.getJSONArray("errors").length() > 0) {
+                System.out.println(array);
+                break;
+            }
+
+            System.out.println(response);
+        }
     }
 
     private static List<JSONObject> collectSquares(Square l) throws JSONException {

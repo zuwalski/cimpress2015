@@ -31,22 +31,6 @@ public class PuzzleSolver {
         cluster = new ClusterScanner(width, height);
     }
 
-    public Square remainingSquares(Square sqrs) {
-        PuzzleSource source = new MaskedSource(puzzle, sqrs, width);
-
-        source.begin();
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                if (source.nextCell()) {
-                    sqrs = new Square(x, y, 0, sqrs);
-                }
-            }
-            source.nextRow();
-        }
-
-        return sqrs;
-    }
-
     public Square solve() {
         return solveLevel(puzzle, Square.ROOT);
     }

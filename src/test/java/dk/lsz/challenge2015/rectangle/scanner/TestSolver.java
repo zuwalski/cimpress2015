@@ -1,6 +1,7 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
 import dk.lsz.challenge2015.PuzzleSolver;
+import dk.lsz.challenge2015.SolverDriver;
 import dk.lsz.challenge2015.Square;
 import dk.lsz.challenge2015.rectangle.scanner.sources.ArraySource;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public class TestSolver {
             level = solution.level;
         }
 
-        assertTrue("invalid solution", verify(solver.remainingSquares(solution), puzzle));
+        assertTrue("invalid solution", verify(SolverDriver.remainingSquares(solution, new ArraySource(puzzle), puzzle[0].length, puzzle.length), puzzle));
     }
 
     public boolean verify(Square s, short[][] puzzle) {
