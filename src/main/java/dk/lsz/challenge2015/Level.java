@@ -9,8 +9,6 @@ public class Level {
 
     public final int area;
 
-    public final int site;
-
     public final static Level ROOT = new Level(0);
     public final static Level WORST = new Level(Integer.MAX_VALUE);
 
@@ -20,15 +18,13 @@ public class Level {
         this.level = level;
         prev = this;
         area = 0;
-        site = -1;
     }
 
-    public Level(int x, int y, int size, Level prev, int site) {
+    public Level(int x, int y, int size, Level prev) {
         this.x = x;
         this.y = y;
         this.size = size;
         this.prev = prev;
-        this.site = site;
         this.level = prev.level + 1;
         this.area = prev.area + (size + 1) * (size + 1);
     }
@@ -45,7 +41,7 @@ public class Level {
             if (l == this)
                 throw new IllegalArgumentException("union will create cycle");
 
-            n = new Level(l.x, l.y, l.size, n, l.site);
+            n = new Level(l.x, l.y, l.size, n);
         }
 
         return n;
@@ -59,7 +55,6 @@ public class Level {
                 ", size=" + size +
                 ", level=" + level +
                 ", area=" + area +
-                ", site=" + site +
                 '}';
     }
 }

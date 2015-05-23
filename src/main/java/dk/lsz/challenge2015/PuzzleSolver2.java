@@ -20,14 +20,31 @@ public class PuzzleSolver2 {
     private final ClusterScanner cluster;
     private final PuzzleSource puzzle;
     private final int width;
-    private int targetLevel = TARGETLEVEL;
+    private final int height;
 
     public PuzzleSolver2(PuzzleSource puzzle, int width, int height) {
         this.puzzle = puzzle;
         this.width = width;
+        this.height = height;
 
         rectangles = new RectangleScanner(width, height);
         cluster = new ClusterScanner(width, height);
+    }
+
+    public Level remainingSquares(Level sqrs) {
+        PuzzleSource source = new MaskedSource(puzzle, sqrs, width);
+
+        source.begin();
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                if (source.nextCell()) {
+                    sqrs = new Level(x, y, 0, sqrs);
+                }
+            }
+            source.nextRow();
+        }
+
+        return sqrs;
     }
 
     public Level solve() {
@@ -35,11 +52,13 @@ public class PuzzleSolver2 {
     }
 
     public Level solveFrom(Level prev) {
-        targetLevel = 9;
         return solveLevel(new MaskedSource(puzzle, prev, width), Level.ROOT);
     }
 
     private Level solveLevel(PuzzleSource source, Level prev) {
+        if (prev.level > TARGETLEVEL)
+            return prev;
+
         List<Rectangle> src = rectangles.scan(source, prev);
 
         for (List<Rectangle> recs : cluster.split(src)) {
@@ -51,15 +70,15 @@ public class PuzzleSolver2 {
                 if (r.sy - r.y == square) {
                     // slide-x
                     for (int i = r.x; i < r.sx; i += (square + 1)) {
-                        prev = new Level(i, r.y, square, prev, 1);
+                        prev = new Level(i, r.y, square, prev);
                     }
                 } else {
                     // slide-y
                     for (int i = r.y; i < r.sy; i += (square + 1)) {
-                        prev = new Level(r.x, i, square, prev, 2);
+                        prev = new Level(r.x, i, square, prev);
                     }
                 }
-            } else if (!recs.isEmpty() && prev.level < targetLevel) {
+            } else if (!recs.isEmpty()) {
                 Level best = Level.WORST;
 
                 final RectangleSource clsSrc = new RectangleSource(recs, width);
@@ -76,12 +95,12 @@ public class PuzzleSolver2 {
                     if (r.sy - r.y == square) {
                         // slide-x
                         for (int i = r.x; i + square <= r.sx; ++i) {
-                            best = bestOf(best, solveLevel(clsSrc, new Level(i, r.y, square, prev, 3)));
+                            best = bestOf(best, solveLevel(clsSrc, new Level(i, r.y, square, prev)));
                         }
                     } else {
                         // slide-y
                         for (int i = r.y; i + square <= r.sy; ++i) {
-                            best = bestOf(best, solveLevel(clsSrc, new Level(r.x, i, square, prev, 4)));
+                            best = bestOf(best, solveLevel(clsSrc, new Level(r.x, i, square, prev)));
                         }
                     }
                 }

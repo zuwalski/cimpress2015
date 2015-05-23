@@ -1,7 +1,6 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
 import dk.lsz.challenge2015.Level;
-import dk.lsz.challenge2015.Puzzle;
 import dk.lsz.challenge2015.PuzzleSolver2;
 import dk.lsz.challenge2015.rectangle.scanner.sources.ArraySource;
 import org.junit.Test;
@@ -12,6 +11,8 @@ import us.monoid.json.JSONObject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Random;
 
 import static org.junit.Assert.assertTrue;
 
@@ -21,27 +22,64 @@ import static org.junit.Assert.assertTrue;
 public class TestSolver {
 
     @Test
-    public void testSolver3() throws IOException, JSONException {
+    public void testSolver() throws IOException, JSONException {
         final JSONObject json = new JSONObject(new String(Files.readAllBytes(Paths.get("src/test/resources/test2.json"))));
 
         final JSONArray jsonArray = json.getJSONArray("puzzle");
 
-        final short[][] puzzle = Puzzle.translate2array(jsonArray);
+        final short[][] puzzle = translate2array(jsonArray);
         final PuzzleSolver2 solver = new PuzzleSolver2(new ArraySource(puzzle), puzzle[0].length, puzzle.length);
 
+        solveAndValidate(translate2array(jsonArray), solver);
+    }
+
+    @Test
+    public void largeTest() {
+        short[][] test = new short[100][100];
+        long seed = System.currentTimeMillis();
+        System.out.printf("seed: %d\n", seed);
+
+        Random rnd = new Random(seed);
+
+        for (int i = 0; i < 100; i++) {
+            Arrays.fill(test[i], Short.MAX_VALUE);
+
+            for (int t = 0; t < 5; ++t) {
+                test[i][rnd.nextInt(100)] = 0;
+            }
+        }
+
+        final PuzzleSolver2 solver = new PuzzleSolver2(new ArraySource(test), 100, 100);
+
+        solveAndValidate(test, solver);
+    }
+
+    private void solveAndValidate(short[][] puzzle, PuzzleSolver2 solver) {
         long start = System.currentTimeMillis();
 
         Level solution = solver.solve();
 
         System.out.printf("1) => Time: %d Level: %d Area: %d\n", (System.currentTimeMillis() - start), solution.level, solution.area);
 
-        for (int i = 0; i < 5; i++) {
+        int level = solution.level;
+        int it = 2;
+        while (true) {
+            solution = solution.union(solver.solveFrom(solution));
+
+            System.out.printf("%d) => Time: %d Level: %d Area: %d\n", it++, (System.currentTimeMillis() - start), solution.level, solution.area);
+            if (solution.level <= level)
+                break;
+
+            level = solution.level;
+        }
+
+        for (int i = solution.level; i < 5; i++) {
             solution = solution.union(solver.solveFrom(solution));
 
             System.out.printf("%d) => Time: %d Level: %d Area: %d\n", i + 2, (System.currentTimeMillis() - start), solution.level, solution.area);
         }
 
-        assertTrue("invalid solution", verify(solution, Puzzle.translate2array(jsonArray)));
+        assertTrue("invalid solution", verify(solver.remainingSquares(solution), puzzle));
     }
 
     public boolean verify(Level s, short[][] puzzle) {
@@ -117,5 +155,20 @@ public class TestSolver {
         }
 
         System.out.println();
+    }
+
+    public static short[][] translate2array(JSONArray puzzle) throws JSONException {
+        final short[][] translated = new short[puzzle.length()][];
+
+        for (int y = 0; y < puzzle.length(); ++y) {
+            final JSONArray row = puzzle.getJSONArray(y);
+            final short[] r = translated[y] = new short[row.length()];
+
+            for (int x = 0; x < row.length(); ++x) {
+                r[x] = row.getBoolean(x) ? Short.MAX_VALUE : 0;
+            }
+        }
+
+        return translated;
     }
 }

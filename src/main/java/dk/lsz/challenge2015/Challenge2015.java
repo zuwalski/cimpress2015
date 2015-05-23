@@ -1,14 +1,14 @@
 package dk.lsz.challenge2015;
 
+import dk.lsz.challenge2015.rectangle.scanner.sources.JsonSource;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 import us.monoid.web.JSONResource;
 import us.monoid.web.Resty;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static us.monoid.web.Resty.content;
 
@@ -24,43 +24,35 @@ public class Challenge2015 {
     public static void main(String[] args) throws Exception {
         final Resty rest = new Resty();
 
-        final JSONResource puzzleResource = rest.json(url("puzzle"));
+        JSONResource puzzleResource = rest.json(url("puzzle"));
 
-        final String id = puzzleResource.get("id").toString();
-        final JSONArray array = (JSONArray) puzzleResource.get("puzzle");
+        String id = puzzleResource.get("id").toString();
+        JSONArray array = (JSONArray) puzzleResource.get("puzzle");
 
-        final Collection<Puzzle.Square> solution = new Puzzle(array).solve();
+        int width = Integer.parseInt(puzzleResource.get("width").toString());
+        int height = Integer.parseInt(puzzleResource.get("height").toString());
 
-        final List<JSONObject> squares = solution.stream().map(square -> {
-            try {
-                return new JSONObject().put("X", square.x).put("Y", square.y).put("Size", square.size);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).collect(Collectors.toList());
+        PuzzleSolver2 solver2 = new PuzzleSolver2(new JsonSource(array), width, height);
 
-        final JSONObject response = rest.json(url("solution"), content(new JSONObject().put("id", id).put("squares", squares))).object();
+        List<JSONObject> squares = collectSquares(solver2.remainingSquares(solver2.solve()));
 
+        JSONObject response = rest.json(url("solution"), content(new JSONObject().put("id", id).put("squares", squares))).object();
+
+        System.out.printf("w: %d h: %d - obj: %d\n", width, height, squares.size());
         System.out.println(response);
+    }
+
+    private static List<JSONObject> collectSquares(Level l) throws JSONException {
+        List<JSONObject> res = new ArrayList<>();
+
+        for (; l != Level.ROOT; l = l.prev) {
+            res.add(new JSONObject().put("X", l.x).put("Y", l.y).put("Size", l.size + 1));
+        }
+
+        return res;
     }
 
     private static String url(String endpoint) {
         return String.join("/", base, key, env, endpoint);
-    }
-
-
-    public static short[][] translate2array(JSONArray puzzle) throws JSONException {
-        final short[][] translated = new short[puzzle.length()][];
-
-        for (int y = 0; y < puzzle.length(); ++y) {
-            final JSONArray row = puzzle.getJSONArray(y);
-            final short[] r = translated[y] = new short[row.length()];
-
-            for (int x = 0; x < row.length(); ++x) {
-                r[x] = row.getBoolean(x) ? Short.MAX_VALUE : 0;
-            }
-        }
-
-        return translated;
     }
 }
