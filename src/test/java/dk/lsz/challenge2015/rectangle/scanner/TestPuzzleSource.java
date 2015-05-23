@@ -1,6 +1,6 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
-import dk.lsz.challenge2015.Level;
+import dk.lsz.challenge2015.Square;
 import dk.lsz.challenge2015.rectangle.scanner.sources.ArraySource;
 import dk.lsz.challenge2015.rectangle.scanner.sources.RectangleSource;
 import org.junit.Test;
@@ -63,11 +63,11 @@ public class TestPuzzleSource {
             source.nextRow();
         }
 
-        final List<Rectangle> scan = scanner.scan(source, Level.ROOT);
+        final List<Rectangle> scan = scanner.scan(source, Square.ROOT);
 
         assertTrue(scan.containsAll(scan));
 
-        final List<Rectangle> scan2 = scanner.scan(new ArraySource(test), Level.ROOT);
+        final List<Rectangle> scan2 = scanner.scan(new ArraySource(test), Square.ROOT);
 
         assertTrue(scan2.containsAll(scan));
     }

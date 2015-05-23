@@ -1,6 +1,6 @@
 package dk.lsz.challenge2015.rectangle.scanner.sources;
 
-import dk.lsz.challenge2015.Level;
+import dk.lsz.challenge2015.Square;
 
 import java.util.Arrays;
 
@@ -9,11 +9,11 @@ import java.util.Arrays;
  */
 public class MaskedSource implements PuzzleSource {
     private final int[] row;
-    private final Level mask;
+    private final Square mask;
     private final PuzzleSource src;
     private int x, y;
 
-    public MaskedSource(PuzzleSource src, Level mask, int width) {
+    public MaskedSource(PuzzleSource src, Square mask, int width) {
         this.row = new int[width];
         this.mask = mask;
         this.src = src;
@@ -44,7 +44,7 @@ public class MaskedSource implements PuzzleSource {
     private void prepareRow() {
         Arrays.fill(row, 0);
 
-        for (Level l = mask; l != Level.ROOT; l = l.prev) {
+        for (Square l = mask; l != Square.ROOT; l = l.prev) {
             if (l.y <= y && l.y + l.size >= y) {
                 for (int i = l.x; i <= l.x + l.size; ++i) {
                     row[i]++;

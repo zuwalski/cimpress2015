@@ -1,6 +1,6 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
-import dk.lsz.challenge2015.Level;
+import dk.lsz.challenge2015.Square;
 import dk.lsz.challenge2015.rectangle.scanner.sources.PuzzleSource;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class RectangleScanner {
         return numOfTiles;
     }
 
-    public List<Rectangle> scan(PuzzleSource src, Level l) {
+    public List<Rectangle> scan(PuzzleSource src, Square l) {
         final List<Rectangle> recs = new ArrayList<>();
         numOfTiles = 0;
 
@@ -66,6 +66,11 @@ public class RectangleScanner {
         return recs;
     }
 
+    /**
+     * DELETE
+     * @param lockLevel
+     * @return
+     */
     public List<Rectangle> scanAtLevel(final int lockLevel) {
         final List<Rectangle> recs = new ArrayList<>();
         numOfTiles = 0;
@@ -125,6 +130,12 @@ public class RectangleScanner {
         return tracker.rectsToTheLeft().mapToInt(r -> r.x).min().orElse(x);
     }
 
+    /**
+     * TRY AS LOOP
+     * @param x
+     * @param y
+     * @param recs
+     */
     private void stop(int x, int y, List<Rectangle> recs) {
         tracker.rectsToTheLeft().filter(r -> r.stopX(x, y)).forEach(r -> {
             Rectangle replace = new Rectangle(r.x, r.y, x - 1, y, false);

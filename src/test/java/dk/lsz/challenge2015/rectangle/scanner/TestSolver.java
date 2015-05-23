@@ -1,7 +1,7 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
-import dk.lsz.challenge2015.Level;
-import dk.lsz.challenge2015.PuzzleSolver2;
+import dk.lsz.challenge2015.PuzzleSolver;
+import dk.lsz.challenge2015.Square;
 import dk.lsz.challenge2015.rectangle.scanner.sources.ArraySource;
 import org.junit.Test;
 import us.monoid.json.JSONArray;
@@ -27,10 +27,10 @@ public class TestSolver {
 
         final JSONArray jsonArray = json.getJSONArray("puzzle");
 
-        final short[][] puzzle = translate2array(jsonArray);
-        final PuzzleSolver2 solver = new PuzzleSolver2(new ArraySource(puzzle), puzzle[0].length, puzzle.length);
+        final short[][] puzzle = ArraySource.translate2array(jsonArray);
+        final PuzzleSolver solver = new PuzzleSolver(new ArraySource(puzzle), puzzle[0].length, puzzle.length);
 
-        solveAndValidate(translate2array(jsonArray), solver);
+        solveAndValidate(ArraySource.translate2array(jsonArray), solver);
     }
 
     @Test
@@ -49,40 +49,34 @@ public class TestSolver {
             }
         }
 
-        final PuzzleSolver2 solver = new PuzzleSolver2(new ArraySource(test), 100, 100);
+        final PuzzleSolver solver = new PuzzleSolver(new ArraySource(test), 100, 100);
 
         solveAndValidate(test, solver);
     }
 
-    private void solveAndValidate(short[][] puzzle, PuzzleSolver2 solver) {
+    private void solveAndValidate(short[][] puzzle, PuzzleSolver solver) {
         long start = System.currentTimeMillis();
 
-        Level solution = solver.solve();
+        Square solution = solver.solve();
 
-        System.out.printf("1) => Time: %d Level: %d Area: %d\n", (System.currentTimeMillis() - start), solution.level, solution.area);
+        System.out.printf("1) => Time: %d Square: %d Area: %d\n", (System.currentTimeMillis() - start), solution.level, solution.area);
 
         int level = solution.level;
         int it = 2;
         while (true) {
             solution = solution.union(solver.solveFrom(solution));
 
-            System.out.printf("%d) => Time: %d Level: %d Area: %d\n", it++, (System.currentTimeMillis() - start), solution.level, solution.area);
+            System.out.printf("%d) => Time: %d Square: %d Area: %d\n", it++, (System.currentTimeMillis() - start), solution.level, solution.area);
             if (solution.level <= level)
                 break;
 
             level = solution.level;
         }
 
-        for (int i = solution.level; i < 5; i++) {
-            solution = solution.union(solver.solveFrom(solution));
-
-            System.out.printf("%d) => Time: %d Level: %d Area: %d\n", i + 2, (System.currentTimeMillis() - start), solution.level, solution.area);
-        }
-
         assertTrue("invalid solution", verify(solver.remainingSquares(solution), puzzle));
     }
 
-    public boolean verify(Level s, short[][] puzzle) {
+    public boolean verify(Square s, short[][] puzzle) {
         System.out.printf("Before %d squares\n", countCells(puzzle));
 
         boolean valid = printAndMark(s, puzzle);
@@ -94,8 +88,8 @@ public class TestSolver {
         return valid;
     }
 
-    private boolean printAndMark(Level s, short[][] puzzle) {
-        if (s == Level.ROOT)
+    private boolean printAndMark(Square s, short[][] puzzle) {
+        if (s == Square.ROOT)
             return true;
 
         boolean valid = printAndMark(s.prev, puzzle);
@@ -117,7 +111,7 @@ public class TestSolver {
         return i;
     }
 
-    private boolean markSquare(Level level, short[][] puzzle) {
+    private boolean markSquare(Square level, short[][] puzzle) {
         boolean valid = true;
         for (int sy = 0; sy <= level.size; ++sy) {
             for (int sx = 0; sx <= level.size; ++sx) {
@@ -155,20 +149,5 @@ public class TestSolver {
         }
 
         System.out.println();
-    }
-
-    public static short[][] translate2array(JSONArray puzzle) throws JSONException {
-        final short[][] translated = new short[puzzle.length()][];
-
-        for (int y = 0; y < puzzle.length(); ++y) {
-            final JSONArray row = puzzle.getJSONArray(y);
-            final short[] r = translated[y] = new short[row.length()];
-
-            for (int x = 0; x < row.length(); ++x) {
-                r[x] = row.getBoolean(x) ? Short.MAX_VALUE : 0;
-            }
-        }
-
-        return translated;
     }
 }

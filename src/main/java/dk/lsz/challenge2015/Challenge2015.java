@@ -1,6 +1,6 @@
 package dk.lsz.challenge2015;
 
-import dk.lsz.challenge2015.rectangle.scanner.sources.JsonSource;
+import dk.lsz.challenge2015.rectangle.scanner.sources.ArraySource;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
@@ -32,9 +32,9 @@ public class Challenge2015 {
         int width = Integer.parseInt(puzzleResource.get("width").toString());
         int height = Integer.parseInt(puzzleResource.get("height").toString());
 
-        PuzzleSolver2 solver2 = new PuzzleSolver2(new JsonSource(array), width, height);
+        SolverDriver solver2 = new SolverDriver(new ArraySource(array), width, height);
 
-        List<JSONObject> squares = collectSquares(solver2.remainingSquares(solver2.solve()));
+        List<JSONObject> squares = collectSquares(solver2.solve());
 
         JSONObject response = rest.json(url("solution"), content(new JSONObject().put("id", id).put("squares", squares))).object();
 
@@ -42,10 +42,10 @@ public class Challenge2015 {
         System.out.println(response);
     }
 
-    private static List<JSONObject> collectSquares(Level l) throws JSONException {
+    private static List<JSONObject> collectSquares(Square l) throws JSONException {
         List<JSONObject> res = new ArrayList<>();
 
-        for (; l != Level.ROOT; l = l.prev) {
+        for (; l != Square.ROOT; l = l.prev) {
             res.add(new JSONObject().put("X", l.x).put("Y", l.y).put("Size", l.size + 1));
         }
 
