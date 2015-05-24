@@ -19,7 +19,8 @@ public class SolverDriver {
     }
 
     public Square solve() {
-        PuzzleSolver solver = new PuzzleSolver(puzzle, width, height);
+        int targetLevel = 5;
+        PuzzleSolver solver = new PuzzleSolver(puzzle, width, height, targetLevel);
 
         Square solution = solver.solve();
 

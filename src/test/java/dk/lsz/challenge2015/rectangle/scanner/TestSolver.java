@@ -1,7 +1,6 @@
 package dk.lsz.challenge2015.rectangle.scanner;
 
 import dk.lsz.challenge2015.PuzzleSolver;
-import dk.lsz.challenge2015.SolverDriver;
 import dk.lsz.challenge2015.Square;
 import dk.lsz.challenge2015.rectangle.scanner.sources.ArraySource;
 import org.junit.Test;
@@ -23,13 +22,37 @@ import static org.junit.Assert.assertTrue;
 public class TestSolver {
 
     @Test
+    public void testSingleSolver() throws IOException, JSONException {
+        final int size = 20;
+        short[][] test = new short[size][size];
+        long seed = System.currentTimeMillis();
+        System.out.printf("seed: %d\n", seed);
+
+        Random rnd = new Random(seed);
+
+        for (int i = 0; i < size; i++) {
+            Arrays.fill(test[i], Short.MAX_VALUE);
+
+            for (int t = 0; t < 5; ++t) {
+                test[i][rnd.nextInt(size)] = 0;
+            }
+        }
+
+        int targetLevel = 10;
+        final PuzzleSolver solver = new PuzzleSolver(new ArraySource(test), size, size, targetLevel);
+
+        solver.solve();
+    }
+
+    @Test
     public void testSolver() throws IOException, JSONException {
-        final JSONObject json = new JSONObject(new String(Files.readAllBytes(Paths.get("src/test/resources/test2.json"))));
+        final JSONObject json = new JSONObject(new String(Files.readAllBytes(Paths.get("src/test/resources/test1.json"))));
 
         final JSONArray jsonArray = json.getJSONArray("puzzle");
 
         final short[][] puzzle = ArraySource.translate2array(jsonArray);
-        final PuzzleSolver solver = new PuzzleSolver(new ArraySource(puzzle), puzzle[0].length, puzzle.length);
+        int targetLevel = 7;
+        final PuzzleSolver solver = new PuzzleSolver(new ArraySource(puzzle), puzzle[0].length, puzzle.length, targetLevel);
 
         solveAndValidate(ArraySource.translate2array(jsonArray), solver);
     }
@@ -50,7 +73,8 @@ public class TestSolver {
             }
         }
 
-        final PuzzleSolver solver = new PuzzleSolver(new ArraySource(test), 100, 100);
+        int targetLevel = 2;
+        final PuzzleSolver solver = new PuzzleSolver(new ArraySource(test), 100, 100, targetLevel);
 
         solveAndValidate(test, solver);
     }
@@ -62,19 +86,20 @@ public class TestSolver {
 
         System.out.printf("1) => Time: %d Square: %d Area: %d\n", (System.currentTimeMillis() - start), solution.level, solution.area);
 
-        int level = solution.level;
+        Square prev = Square.WORST;
         int it = 2;
         while (true) {
             solution = solution.union(solver.solveFrom(solution));
 
             System.out.printf("%d) => Time: %d Square: %d Area: %d\n", it++, (System.currentTimeMillis() - start), solution.level, solution.area);
-            if (solution.level <= level)
+            if (solution.level == prev.level && solution.area == prev.area)
                 break;
 
-            level = solution.level;
+            prev = solution;
         }
 
-        assertTrue("invalid solution", verify(SolverDriver.remainingSquares(solution, new ArraySource(puzzle), puzzle[0].length, puzzle.length), puzzle));
+        assertTrue("invalid solution", verify(solution, puzzle));
+//        assertTrue("invalid solution", verify(SolverDriver.remainingSquares(solution, new ArraySource(puzzle), puzzle[0].length, puzzle.length), puzzle));
     }
 
     public boolean verify(Square s, short[][] puzzle) {

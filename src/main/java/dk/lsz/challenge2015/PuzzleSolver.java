@@ -14,7 +14,7 @@ import java.util.List;
  * Created by lars on 03/05/15.
  */
 public class PuzzleSolver {
-    private static final int TARGETLEVEL = 5;
+    private final int targetLevel;
 
     private final RectangleScanner rectangles;
     private final ClusterScanner cluster;
@@ -22,10 +22,11 @@ public class PuzzleSolver {
     private final int width;
     private final int height;
 
-    public PuzzleSolver(PuzzleSource puzzle, int width, int height) {
+    public PuzzleSolver(PuzzleSource puzzle, int width, int height, int targetLevel) {
         this.puzzle = puzzle;
         this.width = width;
         this.height = height;
+        this.targetLevel = targetLevel;
 
         rectangles = new RectangleScanner(width, height);
         cluster = new ClusterScanner(width, height);
@@ -40,11 +41,12 @@ public class PuzzleSolver {
     }
 
     private Square solveLevel(PuzzleSource source, Square prev) {
-        if (prev.level > TARGETLEVEL)
+        if (prev.level > targetLevel)
             return prev;
 
         List<Rectangle> src = rectangles.scan(source, prev);
 
+        int level = prev.level + 1;
         for (List<Rectangle> recs : cluster.split(src)) {
 
             if (recs.size() == 1) {
@@ -53,13 +55,13 @@ public class PuzzleSolver {
                 int square = r.minWidth();
                 if (r.sy - r.y == square) {
                     // slide-x
-                    for (int i = r.x; i < r.sx; i += (square + 1)) {
-                        prev = new Square(i, r.y, square, prev);
+                    for (int i = r.x; i + square <= r.sx; i += (square + 1)) {
+                        prev = new Square(i, r.y, square, prev, level);
                     }
                 } else {
                     // slide-y
-                    for (int i = r.y; i < r.sy; i += (square + 1)) {
-                        prev = new Square(r.x, i, square, prev);
+                    for (int i = r.y; i + square <= r.sy; i += (square + 1)) {
+                        prev = new Square(r.x, i, square, prev, level);
                     }
                 }
             } else if (!recs.isEmpty()) {
@@ -92,6 +94,8 @@ public class PuzzleSolver {
                 prev = best;
             }
         }
+
+        //System.out.printf("%d %d\n", prev.area, prev.level);
 
         return prev;
     }

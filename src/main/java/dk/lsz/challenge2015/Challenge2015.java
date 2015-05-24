@@ -20,13 +20,16 @@ public class Challenge2015 {
 
     static final String env = "trial";
     static final String base = "http://techchallenge.cimpress.com";
+
     private static final int RUNTIMES = 10;
 
     public static void main(String[] args) throws Exception {
-        final Resty rest = new Resty();
 
         for (int i = 0; i < RUNTIMES; ++i) {
+            final Resty rest = new Resty();
+
             long start = System.currentTimeMillis();
+            System.gc();
             System.out.println("request");
             JSONResource puzzleResource = rest.json(url("puzzle"));
 
