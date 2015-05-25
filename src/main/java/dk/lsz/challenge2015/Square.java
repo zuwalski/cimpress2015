@@ -21,15 +21,11 @@ public class Square {
     }
 
     public Square(int x, int y, int size, Square prev) {
-        this(x, y, size, prev, prev.level + 1);
-    }
-
-    public Square(int x, int y, int size, Square prev, int level) {
         this.x = x;
         this.y = y;
         this.size = size;
         this.prev = prev;
-        this.level = level;
+        this.level = prev.level + 1;
         this.area = prev.area + (size + 1) * (size + 1);
     }
 
@@ -45,18 +41,19 @@ public class Square {
             if (l == this)
                 throw new IllegalArgumentException("union will create cycle");
 
-            n = new Square(l.x, l.y, l.size, n, n.level);
+            n = new Square(l.x, l.y, l.size, n);
         }
 
         return n;
     }
 
-
     public static Square bestOf(Square l1, Square l2) {
-        if (l1.level == l2.level)
+        return l1.area > l2.area ? l1 : l2;
+/*        if (l1.level == l2.level)
             return l1.area > l2.area ? l1 : l2;
 
         return l1.level < l2.level ? l1 : l2;
+        */
     }
 
     @Override

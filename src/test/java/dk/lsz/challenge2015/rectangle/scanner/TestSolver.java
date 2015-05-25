@@ -23,7 +23,9 @@ public class TestSolver {
 
     @Test
     public void testSingleSolver() throws IOException, JSONException {
-        final int size = 20;
+        int targetLevel = 5;
+        final int size = 100;
+
         short[][] test = new short[size][size];
         long seed = System.currentTimeMillis();
         System.out.printf("seed: %d\n", seed);
@@ -38,10 +40,14 @@ public class TestSolver {
             }
         }
 
-        int targetLevel = 10;
         final PuzzleSolver solver = new PuzzleSolver(new ArraySource(test), size, size, targetLevel);
 
-        solver.solve();
+        long start = System.currentTimeMillis();
+        final Square solution = solver.solve();
+
+        System.out.printf("done in %d ms\n", System.currentTimeMillis() - start);
+
+        verify(solution, test);
     }
 
     @Test
@@ -51,7 +57,7 @@ public class TestSolver {
         final JSONArray jsonArray = json.getJSONArray("puzzle");
 
         final short[][] puzzle = ArraySource.translate2array(jsonArray);
-        int targetLevel = 7;
+        int targetLevel = 1;
         final PuzzleSolver solver = new PuzzleSolver(new ArraySource(puzzle), puzzle[0].length, puzzle.length, targetLevel);
 
         solveAndValidate(ArraySource.translate2array(jsonArray), solver);
@@ -59,22 +65,23 @@ public class TestSolver {
 
     @Test
     public void largeTest() {
-        short[][] test = new short[100][100];
+        int size = 100;
+        short[][] test = new short[size][size];
         long seed = System.currentTimeMillis();
         System.out.printf("seed: %d\n", seed);
 
         Random rnd = new Random(seed);
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < size; i++) {
             Arrays.fill(test[i], Short.MAX_VALUE);
 
             for (int t = 0; t < 5; ++t) {
-                test[i][rnd.nextInt(100)] = 0;
+                test[i][rnd.nextInt(size)] = 0;
             }
         }
 
         int targetLevel = 2;
-        final PuzzleSolver solver = new PuzzleSolver(new ArraySource(test), 100, 100, targetLevel);
+        final PuzzleSolver solver = new PuzzleSolver(new ArraySource(test), size, size, targetLevel);
 
         solveAndValidate(test, solver);
     }
@@ -99,10 +106,9 @@ public class TestSolver {
         }
 
         assertTrue("invalid solution", verify(solution, puzzle));
-//        assertTrue("invalid solution", verify(SolverDriver.remainingSquares(solution, new ArraySource(puzzle), puzzle[0].length, puzzle.length), puzzle));
     }
 
-    public boolean verify(Square s, short[][] puzzle) {
+    public static boolean verify(Square s, short[][] puzzle) {
         System.out.printf("Before %d squares\n", countCells(puzzle));
 
         boolean valid = printAndMark(s, puzzle);
@@ -114,7 +120,7 @@ public class TestSolver {
         return valid;
     }
 
-    private boolean printAndMark(Square s, short[][] puzzle) {
+    private static boolean printAndMark(Square s, short[][] puzzle) {
         if (s == Square.ROOT)
             return true;
 
@@ -125,7 +131,7 @@ public class TestSolver {
         return markSquare(s, puzzle) && valid;
     }
 
-    private int countCells(short[][] puzzle) {
+    private static int countCells(short[][] puzzle) {
         int i = 0;
         for (int y = 0; y < puzzle.length; ++y) {
             short[] row = puzzle[y];
@@ -137,7 +143,7 @@ public class TestSolver {
         return i;
     }
 
-    private boolean markSquare(Square level, short[][] puzzle) {
+    private static boolean markSquare(Square level, short[][] puzzle) {
         boolean valid = true;
         for (int sy = 0; sy <= level.size; ++sy) {
             for (int sx = 0; sx <= level.size; ++sx) {
@@ -156,7 +162,7 @@ public class TestSolver {
         return valid;
     }
 
-    private void print(short[][] puzzle) {
+    private static void print(short[][] puzzle) {
         System.out.println();
 
         for (int y = 0; y < puzzle.length; ++y) {

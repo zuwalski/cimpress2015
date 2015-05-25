@@ -11,7 +11,6 @@ public class SolverDriver {
     private final int width;
     private final int height;
 
-
     public SolverDriver(PuzzleSource puzzle, int width, int height) {
         this.puzzle = puzzle;
         this.width = width;
@@ -19,20 +18,18 @@ public class SolverDriver {
     }
 
     public Square solve() {
-        int targetLevel = 5;
-        PuzzleSolver solver = new PuzzleSolver(puzzle, width, height, targetLevel);
+        final PuzzleSolver solver = new PuzzleSolver(puzzle, width, height, 10);
 
         Square solution = solver.solve();
 
-        int level = solution.level;
+        Square prev = Square.WORST;
         while (true) {
-            System.out.printf("solution at %d\n", level);
             solution = solution.union(solver.solveFrom(solution));
 
-            if (solution.level <= level)
+            if (solution.level == prev.level && solution.area == prev.area)
                 break;
 
-            level = solution.level;
+            prev = solution;
         }
 
         return remainingSquares(solution, puzzle, width, height);
