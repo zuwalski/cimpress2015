@@ -9,7 +9,6 @@ import dk.lsz.challenge2015.rectangle.scanner.sources.RectangleSource;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Created by lars on 03/05/15.
@@ -25,11 +24,6 @@ public class PuzzleSolver {
     private int realIterations;
 
     public PuzzleSolver(PuzzleSource puzzle, int width, int height, int targetLevel) {
-        this(puzzle, width, height, targetLevel, s -> {
-        });
-    }
-
-    public PuzzleSolver(PuzzleSource puzzle, int width, int height, int targetLevel, Consumer<Square> forward) {
         this.puzzle = puzzle;
         this.width = width;
         this.targetLevel = targetLevel;
@@ -39,84 +33,99 @@ public class PuzzleSolver {
     }
 
     public Square solve() {
-        realIterations = iterations = 0;
         return solveLevel(puzzle, Square.ROOT);
     }
 
     public Square solveFrom(Square prev) {
-        realIterations = iterations = 0;
-        Square s = solveLevel(new MaskedSource(puzzle, prev, width), Square.ROOT);
-        realIterations += iterations;
-        if (realIterations < 50) {
-            targetLevel++;
+        return complexityAccelerate(solveLevel(new MaskedSource(puzzle, prev, width), Square.ROOT));
+    }
+
+    private Square solveLevel(PuzzleSource source, Square depth) {
+
+        if (!complexityBrake(depth)) {
+
+            List<Rectangle> src = rectangles.scan(source, depth);
+
+            final int level = depth.level + 1;
+            for (List<Rectangle> recs : cluster.split(src)) {
+                if (recs.size() == 1) {
+                    final Rectangle r = recs.get(0);
+
+                    int square = r.minWidth();
+                    if (r.sy - r.y == square) {
+                        // slide-x
+                        for (int i = r.x; i + square <= r.sx; i += (square + 1)) {
+                            depth = new Square(i, r.y, square, depth, level);
+                        }
+                    } else {
+                        // slide-y
+                        for (int i = r.y; i + square <= r.sy; i += (square + 1)) {
+                            depth = new Square(r.x, i, square, depth, level);
+                        }
+                    }
+                } else if (!recs.isEmpty()) {
+                    Square best = Square.WORST;
+
+                    final RectangleSource clsSrc = new RectangleSource(recs, width);
+
+                    Collections.sort(recs);
+
+                    int minSquare = 1;
+                    for (Rectangle r : recs) {
+                        final int square = r.minWidth();
+                        if (square < minSquare)
+                            break;
+                        minSquare = square;
+
+                        if (r.sy - r.y == square) {
+                            // slide-x
+                            for (int i = r.x; i + square <= r.sx; ++i) {
+                                best = Square.bestOf(best, solveLevel(clsSrc, new Square(i, r.y, square, depth)));
+                            }
+                        } else {
+                            // slide-y
+                            for (int i = r.y; i + square <= r.sy; ++i) {
+                                best = Square.bestOf(best, solveLevel(clsSrc, new Square(r.x, i, square, depth)));
+                            }
+                        }
+                    }
+
+                    depth = best;
+                }
+            }
         }
-        return s;
+
+        return depth;
     }
 
-    public int getIterations() {
-        return realIterations;
-    }
+    private boolean complexityBrake(Square depth) {
+        if (depth == Square.ROOT)
+            iterations = realIterations = 0;
 
-    private Square solveLevel(PuzzleSource source, Square prev) {
-        if (prev.level > targetLevel)
-            return prev;
+        if (depth.level > targetLevel)
+            return true;
 
         iterations++;
         if (iterations > 100) {
             targetLevel = Math.max(1, targetLevel - 1);
             realIterations += iterations;
             iterations = 0;
+            //System.out.printf("brake to %d\n", targetLevel);
         }
 
-        List<Rectangle> src = rectangles.scan(source, prev);
+        return false;
+    }
 
-        for (List<Rectangle> recs : cluster.split(src)) {
-            if (recs.size() == 1) {
-                final Rectangle r = recs.get(0);
-
-                int square = r.minWidth();
-                if (r.sy - r.y == square) {
-                    // slide-x
-                    for (int i = r.x; i + square <= r.sx; i += (square + 1)) {
-                        prev = new Square(i, r.y, square, prev);
-                    }
-                } else {
-                    // slide-y
-                    for (int i = r.y; i + square <= r.sy; i += (square + 1)) {
-                        prev = new Square(r.x, i, square, prev);
-                    }
-                }
-            } else if (!recs.isEmpty()) {
-                Square best = Square.WORST;
-
-                final RectangleSource clsSrc = new RectangleSource(recs, width);
-
-                Collections.sort(recs);
-
-                int minSquare = 1;
-                for (Rectangle r : recs) {
-                    final int square = r.minWidth();
-                    if (square < minSquare)
-                        break;
-                    minSquare = square;
-
-                    if (r.sy - r.y == square) {
-                        // slide-x
-                        for (int i = r.x; i + square <= r.sx; ++i) {
-                            best = Square.bestOf(best, solveLevel(clsSrc, new Square(i, r.y, square, prev)));
-                        }
-                    } else {
-                        // slide-y
-                        for (int i = r.y; i + square <= r.sy; ++i) {
-                            best = Square.bestOf(best, solveLevel(clsSrc, new Square(r.x, i, square, prev)));
-                        }
-                    }
-                }
-
-                prev = best;
-            }
+    private Square complexityAccelerate(Square solution) {
+        if (realIterations + iterations < 50) {
+            targetLevel++;
+            //System.out.printf("accelerate to %d\n", targetLevel);
         }
 
-        return prev;
+        return solution;
+    }
+
+    public int getIterations() {
+        return realIterations + iterations;
     }
 }

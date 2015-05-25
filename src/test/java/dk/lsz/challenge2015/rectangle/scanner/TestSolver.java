@@ -70,7 +70,7 @@ public class TestSolver {
         long seed = System.currentTimeMillis();
         System.out.printf("seed: %d\n", seed);
 
-        Random rnd = new Random(seed);
+        Random rnd = new Random(1432587821370L);
 
         for (int i = 0; i < size; i++) {
             Arrays.fill(test[i], Short.MAX_VALUE);

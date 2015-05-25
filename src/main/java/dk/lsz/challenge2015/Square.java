@@ -29,6 +29,15 @@ public class Square {
         this.area = prev.area + (size + 1) * (size + 1);
     }
 
+    public Square(int x, int y, int size, Square prev, int level) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.prev = prev;
+        this.level = level;
+        this.area = prev.area + (size + 1) * (size + 1);
+    }
+
     public boolean cover(int x, int y) {
         return this.y <= y && this.y + size >= y
                 && this.x <= x && this.x + size >= x;
@@ -41,7 +50,7 @@ public class Square {
             if (l == this)
                 throw new IllegalArgumentException("union will create cycle");
 
-            n = new Square(l.x, l.y, l.size, n);
+            n = new Square(l.x, l.y, l.size, n, n.level);
         }
 
         return n;

@@ -23,16 +23,17 @@ public class Challenge2015 {
 
     static final String base = "http://techchallenge.cimpress.com";
 
-    private static final int RUNTIMES = 400;
+    private static final int RUNTIMES = 1000;
 
     public static void main(String[] args) throws Exception {
 
         for (int i = 0; i < RUNTIMES; ++i) {
             final Resty rest = new Resty();
 
-            long start = System.currentTimeMillis();
             System.gc();
             System.out.println("request");
+
+            long start = System.currentTimeMillis();
             JSONResource puzzleResource = rest.json(url("puzzle"));
 
             String id = puzzleResource.get("id").toString();
@@ -50,13 +51,12 @@ public class Challenge2015 {
             JSONObject response = rest.json(url("solution"), content(new JSONObject().put("id", id).put("squares", squares))).object();
 
             System.out.printf("send time: %d ms\n", (System.currentTimeMillis() - start));
+            System.out.println(response);
 
             if (response.getJSONArray("errors").length() > 0) {
                 System.out.println(array);
                 break;
             }
-
-            System.out.println(response);
         }
     }
 
