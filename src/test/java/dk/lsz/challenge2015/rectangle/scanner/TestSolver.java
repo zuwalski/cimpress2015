@@ -52,12 +52,12 @@ public class TestSolver {
 
     @Test
     public void testSolver() throws IOException, JSONException {
-        final JSONObject json = new JSONObject(new String(Files.readAllBytes(Paths.get("src/test/resources/test1.json"))));
+        final JSONObject json = new JSONObject(new String(Files.readAllBytes(Paths.get("src/test/resources/test4.json"))));
 
         final JSONArray jsonArray = json.getJSONArray("puzzle");
 
         final short[][] puzzle = ArraySource.translate2array(jsonArray);
-        int targetLevel = 1;
+        int targetLevel = 10;
         final PuzzleSolver solver = new PuzzleSolver(new ArraySource(puzzle), puzzle[0].length, puzzle.length, targetLevel);
 
         solveAndValidate(ArraySource.translate2array(jsonArray), solver);
@@ -80,7 +80,7 @@ public class TestSolver {
             }
         }
 
-        int targetLevel = 2;
+        int targetLevel = 10;
         final PuzzleSolver solver = new PuzzleSolver(new ArraySource(test), size, size, targetLevel);
 
         solveAndValidate(test, solver);
@@ -91,14 +91,14 @@ public class TestSolver {
 
         Square solution = solver.solve();
 
-        System.out.printf("1) => Time: %d Square: %d Area: %d\n", (System.currentTimeMillis() - start), solution.level, solution.area);
+        System.out.printf("1) => Time: %d Square: %d Area: %d (%d iterations)\n", (System.currentTimeMillis() - start), solution.level, solution.area, solver.getIterations());
 
         Square prev = Square.WORST;
         int it = 2;
         while (true) {
             solution = solution.union(solver.solveFrom(solution));
 
-            System.out.printf("%d) => Time: %d Square: %d Area: %d\n", it++, (System.currentTimeMillis() - start), solution.level, solution.area);
+            System.out.printf("%d) => Time: %d Square: %d Area: %d (%d iterations)\n", it++, (System.currentTimeMillis() - start), solution.level, solution.area, solver.getIterations());
             if (solution.level == prev.level && solution.area == prev.area)
                 break;
 

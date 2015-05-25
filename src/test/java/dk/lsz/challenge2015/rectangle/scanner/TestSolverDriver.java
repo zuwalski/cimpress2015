@@ -49,7 +49,7 @@ public class TestSolverDriver {
 
     @Test
     public void testOnJson() throws IOException, JSONException, InterruptedException {
-        final JSONObject json = new JSONObject(new String(Files.readAllBytes(Paths.get("src/test/resources/test4.json"))));
+        final JSONObject json = new JSONObject(new String(Files.readAllBytes(Paths.get("src/test/resources/test1.json"))));
 
         final JSONArray jsonArray = json.getJSONArray("puzzle");
 

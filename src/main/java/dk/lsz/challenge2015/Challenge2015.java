@@ -18,10 +18,12 @@ import static us.monoid.web.Resty.content;
 public class Challenge2015 {
     static final String key = "1f682d7418f041f79a83119cfc8faf90";
 
-    static final String env = "trial";
+    //static final String env = "trial";
+    static final String env = "contest";
+
     static final String base = "http://techchallenge.cimpress.com";
 
-    private static final int RUNTIMES = 10;
+    private static final int RUNTIMES = 400;
 
     public static void main(String[] args) throws Exception {
 

@@ -46,6 +46,7 @@ public class PuzzleSolver {
     public Square solveFrom(Square prev) {
         realIterations = iterations = 0;
         Square s = solveLevel(new MaskedSource(puzzle, prev, width), Square.ROOT);
+        realIterations += iterations;
         if (realIterations < 50) {
             targetLevel++;
         }
@@ -60,10 +61,10 @@ public class PuzzleSolver {
         if (prev.level > targetLevel)
             return prev;
 
-        realIterations++;
         iterations++;
         if (iterations > 100) {
             targetLevel = Math.max(1, targetLevel - 1);
+            realIterations += iterations;
             iterations = 0;
         }
 
